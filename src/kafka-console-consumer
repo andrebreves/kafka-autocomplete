@@ -1,7 +1,7 @@
+#!/bin/bash
 # bash completion for kafka-(avro-)console-consumer         -*- shell-script -*-
 
-_landoop-consumer-configs()
-{
+_landoop-consumer-configs() {
     local cur prev configs
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -9,10 +9,10 @@ _landoop-consumer-configs()
     configs="bootstrap.servers= \
              key.deserializer= \
              value.deserializer= \
-	     fetch.min.bytes= \
-	     group.id= \
-	     heartbeat.interval.ms= \
-	     max.partition.fetch.bytes= \
+             fetch.min.bytes= \
+             group.id= \
+             heartbeat.interval.ms= \
+             max.partition.fetch.bytes= \
              session.timeout.ms= \
              ssl.key.password= \
              ssl.keystore.location= \
@@ -67,8 +67,7 @@ _landoop-consumer-configs()
     return 0
 }
 
-_landoop-consumer-isolation-configs()
-{
+_landoop-consumer-isolation-configs() {
     local cur prev configs
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -86,10 +85,10 @@ _landoop-kafka-console-consumer() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    wotherarg="--blacklist \
-               --bootstrap-server \
+    wotherarg="--bootstrap-server \
                --consumer-property \
                --formatter \
+               --group \
                --isolation-level \
                --key-deserializer \
                --max-messages \
@@ -99,25 +98,21 @@ _landoop-kafka-console-consumer() {
                --timeout-ms \
                --topic \
                --value-deserializer \
-               --whitelist \
-               --zookeeper"
+               --whitelist"
     wfileargs="--consumer.config"
-    wdirargs="--metrics-dir"
-    opts="--csv-reporter-enabled \
-          --delete-consumer-offsets \
-          --enable-systest-events \
+    wdirargs=""
+    opts="--enable-systest-events \
           --from-beginning \
-          --new-consumer \
           --skip-message-on-error"
 
     allopts="$wotherarg $opts $wfileargs $wdirargs"
 
     case "$prev" in
-        --bootstrap-server|--zookeeper)
-            _known_hosts
+        --bootstrap-server)
+            COMPREPLY=( '`broker-list`' )
             return 0
             ;;
-	--consumer-property)
+        --consumer-property)
             _landoop-consumer-configs
             return 0
             ;;
@@ -125,18 +120,23 @@ _landoop-kafka-console-consumer() {
             _landoop-consumer-isolation-configs
             return 0
             ;;
-	@(${wfileargs// /|}))
+        @(${wfileargs// /|}))
             _filedir
             return 0
             ;;
-	@(${wdirargs// /|}))
-            _filedir -d
-            return 0
-            ;;
-	@(${wotherarg// /|}))
+        # @(${wdirargs// /|}))
+        #     _filedir -d
+        #     return 0
+        #     ;;
+        @(${wotherarg// /|}))
             return 0
             ;;
     esac
+
+    if [[ "${cur}" == "" ]] ; then
+        COMPREPLY=( $(compgen -W "${allopts}") )
+        return 0
+    fi
 
     if [[ ${cur} == -* ]] ; then
         COMPREPLY=( $(compgen -W "${allopts}" -- ${cur}) )

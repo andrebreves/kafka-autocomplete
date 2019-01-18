@@ -1,3 +1,4 @@
+#!/bin/bash
 # bash completion for kafka-topics                          -*- shell-script -*-
 
 _landoop-kafka-topics-configs()
@@ -16,6 +17,7 @@ _landoop-kafka-topics-configs()
              index.interval.bytes= \
              leader.replication.throttled.replicas= \
              max.message.bytes= \
+             message.downconversion.enable= \
              message.format.version= \
              message.timestamp.difference.max.ms= \
              message.timestamp.type= \
@@ -52,6 +54,7 @@ _landoop-kafka-topics-delete-configs()
              index.interval.bytes \
              leader.replication.throttled.replicas \
              max.message.bytes \
+             message.downconversion.enable \
              message.format.version \
              message.timestamp.difference.max.ms \
              message.timestamp.type \
@@ -99,6 +102,7 @@ _landoop-kafka-topics() {
           --delete \
           --describe \
           --disable-rack-aware \
+          --exclude-internal \
           --force \
           --help \
           --if-exists \
@@ -111,11 +115,11 @@ _landoop-kafka-topics() {
     allopts="$wotherarg $opts"
 
     case "$prev" in
-	--config)
+        --config)
             _landoop-kafka-topics-configs
             return 0
             ;;
-	--delete-config)
+        --delete-config)
             _landoop-kafka-topics-delete-configs
             return 0
             ;;
@@ -132,13 +136,18 @@ _landoop-kafka-topics() {
             return 0
             ;;
         --zookeeper)
-            _known_hosts
+            COMPREPLY=( '$ZK' )
             return 0
             ;;
         @(${wotherarg// /|}))
             return 0
             ;;
     esac
+
+    if [[ "${cur}" == "" ]] ; then
+        COMPREPLY=( $(compgen -W "${allopts}") )
+        return 0
+    fi
 
     if [[ ${cur} == -* ]] ; then
         COMPREPLY=( $(compgen -W "${allopts}" -- ${cur}) )

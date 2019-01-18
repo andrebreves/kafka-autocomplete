@@ -1,3 +1,4 @@
+#!/bin/bash
 # bash completion for kafka-(avro-)console-producer         -*- shell-script -*-
 
 _landoop-producer-configs()
@@ -89,7 +90,6 @@ _landoop-kafka-console-producer() {
     wotherarg="--batch-size \
                --broker-list \
                --compression-codec \
-               --key-serializer \
                --line-reader \
                --max-block-ms \
                --max-memory-bytes \
@@ -98,28 +98,23 @@ _landoop-kafka-console-producer() {
                --metadata-expiry-ms \
                --producer-property \
                --property \
-               --queue-enqueuetimeout-ms \
-               --queue-size \
                --request-required-acks \
                --request-timeout-ms \
                --retry-backoff-ms \
                --socket-buffer-size \
                --timeout \
-               --topic \
-               --value-serializer"
-
+               --topic"
     wfileargs="--producer.config"
     wdirargs=""
-    opts="--old-producer \
-          --sync"
+    opts="--sync"
     allopts="$wotherarg $opts $wfileargs $wdirargs"
 
     case "$prev" in
         --broker-list)
-            _known_hosts
+            COMPREPLY=( '`broker-list`' )
             return 0
             ;;
-	--producer-property)
+        --producer-property)
             _landoop-producer-configs
             return 0
             ;;
@@ -127,18 +122,23 @@ _landoop-kafka-console-producer() {
             _landoop-producer-compression-configs
             return 0
             ;;
-	@(${wfileargs// /|}))
+	    @(${wfileargs// /|}))
             _filedir
             return 0
             ;;
-	# @(${wdirargs// /|}))
+        # @(${wdirargs// /|}))
         #     _filedir -d
         #     return 0
         #     ;;
-	@(${wotherarg// /|}))
+        @(${wotherarg// /|}))
             return 0
             ;;
     esac
+
+    if [[ "${cur}" == "" ]] ; then
+        COMPREPLY=( $(compgen -W "${allopts}") )
+        return 0
+    fi
 
     if [[ ${cur} == -* ]] ; then
         COMPREPLY=( $(compgen -W "${allopts}" -- ${cur}) )
